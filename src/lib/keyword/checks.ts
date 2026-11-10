@@ -236,14 +236,24 @@ function detectPageIntent(page: KeywordPage): { label: string; hits: string[] } 
 }
 
 function inTitle(title: string, keyword: string): KeywordCheck {
+  const ideal = "Main words appear in the title";
   if (!title) {
-    return row("in-title", "In title", "Present at the start or the end", "error", "No title tag on this page.", "Add a title that includes the focus keyword at the start or the end.", ERROR_POINTS, "");
+    return row("in-title", "In title", ideal, "error", "No title tag on this page.", "Add a title that includes the main words of the focus keyword.", ERROR_POINTS, "");
   }
-  const hits = countExact(title, keyword);
-  if (hits === 0) {
-    return row("in-title", "In title", "Present at the start or the end", "error", `“${keyword}” is missing from the title.`, "Put the focus keyword at the start or the end of the title.", ERROR_POINTS, title);
+  if (countExact(title, keyword) > 0) {
+    return row("in-title", "In title", ideal, "pass", `“${keyword}” is in the title.`, null, 0, title);
   }
-  return row("in-title", "In title", "Present at the start or the end", "pass", `“${keyword}” is in the title.`, null, 0, title);
+  const wanted = contentWords(keyword);
+  const present = new Set(contentWords(title));
+  const matched = wanted.filter((word) => present.has(word));
+  if (wanted.length >= 3 && matched.length / wanted.length >= 0.5) {
+    return row("in-title", "In title", ideal, "pass", `The title includes ${matched.length} of ${wanted.length} main words from “${keyword}”.`, null, 0, title);
+  }
+  return row("in-title", "In title", ideal, "error", `“${keyword}” is missing from the title.`, "Use the main words of the focus keyword in the title.", ERROR_POINTS, title);
+}
+
+function contentWords(value: string) {
+  return wordsOf(normalize(value)).filter((word) => word.length > 1 && !STOP_WORDS.has(word));
 }
 
 function inH1(h1: string[], keyword: string): KeywordCheck {

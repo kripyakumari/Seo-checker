@@ -85,6 +85,8 @@ assert.equal(status("keyword-stuffing"), "pass");
 assert.equal(status("in-title", page({ title: "A guide for beginners" })), "error");
 assert.equal(status("in-title", page({ title: "A complete beginner guide to running shoes" })), "pass");
 assert.equal(status("in-title", page({ title: "Running shoes: a beginner guide" })), "pass");
+assert.equal(status("in-title", page({ title: "Graphic Design Agency in Chichester | Biztalbox" }), "Creative Graphic Design Company In Chichester"), "pass");
+assert.equal(status("in-title", page({ title: "Biztalbox homepage" }), "Creative Graphic Design Company In Chichester"), "error");
 assert.equal(status("in-h1", page({ h1: ["Beginner guide"] })), "error");
 assert.equal(status("in-h2s", page({ h2: ["Fit tips", "Care tips"] })), "warning");
 assert.equal(status("in-meta", page({ metaDescription: "A short product page summary." })), "warning");
