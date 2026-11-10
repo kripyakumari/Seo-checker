@@ -28,7 +28,6 @@ function status(
   extra: Partial<Parameters<typeof evaluateDescription>[0]> = {},
 ) {
   return evaluateDescription({
-    description,
     descriptionCount: 1,
     title: "Running shoes guide for beginners",
     ogDescription: goodText,

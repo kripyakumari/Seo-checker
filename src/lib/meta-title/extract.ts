@@ -60,25 +60,22 @@ export function extractTitleData(html: string): ExtractedTitle {
     titles.push(cleanText($(el).text()));
   });
 
-  let h1: string | null = null;
-  let h1Count = 0;
+  const h1Texts: string[] = [];
   $("h1").each((_, el) => {
     if (insideForeign(el)) return;
     const text = cleanText($(el).text());
-    if (!text) return;
-    h1Count += 1;
-    if (!h1) h1 = text;
+    if (text) h1Texts.push(text);
   });
+  const h1 = h1Texts[0] ?? null;
 
-  let ogTitle: string | null = null;
-  let metaDescription: string | null = null;
+  const meta: { ogTitle: string | null; description: string | null } = { ogTitle: null, description: null };
   $("meta").each((_, el) => {
     const node = $(el);
     const key = (node.attr("property") || node.attr("name") || "").toLowerCase();
     const content = cleanText(node.attr("content"));
     if (!content) return;
-    if (key === "og:title" && !ogTitle) ogTitle = content;
-    if (key === "description" && !metaDescription) metaDescription = content;
+    if (key === "og:title" && !meta.ogTitle) meta.ogTitle = content;
+    if (key === "description" && !meta.description) meta.description = content;
   });
 
   const title = (titles[0] ?? "").slice(0, 500);
@@ -93,9 +90,9 @@ export function extractTitleData(html: string): ExtractedTitle {
     titles: titles.map((item) => item.slice(0, 500)),
     title,
     h1: h1 ? h1.slice(0, 500) : null,
-    h1Count,
-    ogTitle: ogTitle ? ogTitle.slice(0, 500) : null,
-    metaDescription: metaDescription ? metaDescription.slice(0, 500) : null,
+    h1Count: h1Texts.length,
+    ogTitle: meta.ogTitle ? meta.ogTitle.slice(0, 500) : null,
+    metaDescription: meta.description ? meta.description.slice(0, 500) : null,
     challenge,
   };
 }

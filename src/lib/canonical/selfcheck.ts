@@ -51,7 +51,6 @@ function status(
 ) {
   return evaluateCanonical({
     pageUrl: "https://example.com/page",
-    sources,
     probe: probe(),
     sitemapNote: { status: "pass", found: "The sitemap lists the canonical URL.", fix: null, details: "" },
     otherVersions: [{ bad: false, detail: "http: ok" }],
