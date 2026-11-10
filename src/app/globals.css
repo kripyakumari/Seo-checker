@@ -1,26 +1,221 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-heebo), "Heebo", system-ui, sans-serif;
+  --font-display: var(--font-heebo), "Heebo", system-ui, sans-serif;
+  --color-app: #f4f7fb;
+  --color-ink: #1b2433;
+  --color-muted: #66758a;
+  --color-line: #e6ebf2;
+  --color-card: #ffffff;
+  --color-brand: #2563eb;
+  --color-brand-soft: #eef4ff;
+  --color-moss: #067647;
+  --color-amber: #b54708;
+  --color-clay: #d92d20;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  min-height: 100%;
+  background: #f4f7fb;
+  color: #1b2433;
+  font-family: var(--font-heebo), "Heebo", system-ui, sans-serif;
+  font-weight: 400;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-heebo), "Heebo", system-ui, sans-serif;
+}
+
+h2,
+h3,
+.font-display {
+  font-weight: 900;
+}
+
+::selection {
+  background: #dbe7ff;
+  color: #1b2433;
+}
+
+:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+#hero-url:focus,
+#hero-url:focus-visible,
+#hero-check form :focus,
+#hero-check form :focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.stage-canvas {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(900px 360px at 85% 0%, rgba(255, 255, 255, 0.28), transparent 52%),
+    linear-gradient(180deg, #5b8def 0%, #3d6fd4 100%);
+  color: white;
+}
+
+.stage-canvas::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M14 9v10M9 14h10' stroke='white' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size: 28px 28px;
+}
+
+.stage-canvas > * {
+  position: relative;
+  z-index: 1;
+}
+
+.loading-bar {
+  position: relative;
+  overflow: hidden;
+  background: #e6ebf2;
+}
+
+.loading-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  background: #2563eb;
+  animation: biziol-slide 1.1s ease-in-out infinite;
+}
+
+@keyframes biziol-slide {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(280%);
+  }
+}
+
+@keyframes scan-demo-cursor {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes scan-demo-beam {
+  0% {
+    transform: translateY(-14px);
+  }
+  100% {
+    transform: translateY(172px);
+  }
+}
+
+@keyframes scan-demo-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.scan-demo-cursor {
+  animation: scan-demo-cursor 1s step-end infinite;
+}
+
+.scan-demo-beam {
+  animation: scan-demo-beam 2.1s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.scan-demo-pop {
+  animation: scan-demo-pop 0.35s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+@keyframes see-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@keyframes see-live {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.72);
+  }
+}
+
+@keyframes see-sheen {
+  0%,
+  62% {
+    transform: translateX(-130%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(230%) skewX(-18deg);
+  }
+}
+
+.see-float {
+  animation: see-float 4.8s ease-in-out infinite;
+}
+
+.see-live-dot {
+  animation: see-live 1.5s ease-in-out infinite;
+}
+
+.see-sheen {
+  animation: see-sheen 5.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-bar::after {
+    animation: none;
+  }
+
+  .scan-demo-cursor,
+  .scan-demo-beam,
+  .scan-demo-pop,
+  .see-float,
+  .see-live-dot,
+  .see-sheen {
+    animation: none;
+  }
+}
+
+@media print {
+  body {
+    background: white;
+  }
+
+  .no-print {
+    display: none !important;
+  }
 }

@@ -9,9 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "cheerio": "^1.2.0",
     "next": "16.4.3",
+    "puppeteer-core": "^25.16.0",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "react-icons": "^5.7.0"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
