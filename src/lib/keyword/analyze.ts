@@ -41,7 +41,7 @@ export async function analyzeKeyword(input: {
       };
     }
     const secondary = resolveSecondaryKeywords(input.secondary ?? "", extracted.h2, picked.keyword);
-    const evaluation = evaluateKeyword(extracted, picked.keyword, secondary);
+    const evaluation = evaluateKeyword(extracted, picked.keyword);
     return {
       ok: true,
       ...evaluation,
