@@ -31,12 +31,6 @@ export type RedirectHop = {
   status: number;
 };
 
-export type DuplicateProbe = {
-  label: string;
-  bad: boolean;
-  detail: string;
-};
-
 export type UrlTechnical = {
   reached: boolean;
   hops: RedirectHop[];
@@ -44,7 +38,6 @@ export type UrlTechnical = {
   canonical: string | null;
   /** Null when the http version was not probed. */
   httpRedirectsToHttps: boolean | null;
-  duplicates: DuplicateProbe[];
 };
 
 export type UrlEvaluation = {

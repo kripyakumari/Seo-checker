@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { evaluateLinks } from "./checks";
 import { extractInternalLinks } from "./extract";
-import type { FoundLink, SiteCrawl, TargetProbe } from "./types";
+import type { FoundLink, TargetProbe } from "./types";
 
 function link(partial: Partial<FoundLink> & Pick<FoundLink, "href" | "text">): FoundLink {
   return {
@@ -50,9 +50,7 @@ const good = run([link({ href: "https://example.com/blog/pipes", text: "Pipe rep
 assert.equal(good.score, 100);
 assert.equal(good.grade, "Excellent");
 assert.equal(status(good, "body-links"), "pass");
-assert.equal(status(good, "orphans"), "info");
-assert.equal(status(good, "crawlable"), "pass");
-assert.equal(good.checks.length, 17);
+assert.equal(good.checks.length, 12);
 
 const empty = run([link({ href: "https://example.com/blog/pipes", text: "", empty: true })]);
 assert.equal(status(empty, "empty-anchor"), "error");
@@ -68,12 +66,6 @@ assert.equal(hidden.score, 80);
 const pricing = run([link({ href: "https://example.com/pricing", text: "Pricing", shallow: true })]);
 assert.equal(status(pricing, "descriptive-anchor"), "pass");
 assert.equal(status(pricing, "deep-links"), "warning");
-
-const mixed = run([
-  link({ href: "https://example.com/a", text: "Services" }),
-  link({ href: "https://example.com/b", text: "Services" }),
-]);
-assert.equal(status(mixed, "same-anchor"), "warning");
 
 const stuffed = run(
   [
@@ -101,11 +93,6 @@ const unread = run([link({ href: "https://example.com/slow", text: "Slow page" }
 assert.equal(status(unread, "broken"), "info");
 assert.equal(unread.checks.find((item) => item.id === "broken")?.points, 0);
 
-const hop = run([link({ href: "https://example.com/old", text: "Old page" })], {
-  probes: [probe({ url: "https://example.com/old", redirects: 1, finalUrl: "https://example.com/new" })],
-});
-assert.equal(status(hop, "redirected"), "warning");
-
 assert.equal(status(run([link({ href: "https://example.com/a", text: "Guide", nofollow: true })]), "nofollow"), "warning");
 assert.equal(status(run([link({ href: "http://example.com/a", text: "Guide", insecure: true })]), "https"), "warning");
 assert.equal(status(run([link({ href: "https://example.com/a?utm_source=nav", text: "Guide", parameterized: true })]), "parameters"), "warning");
@@ -113,22 +100,6 @@ assert.equal(status(run([link({ href: "https://example.com/a", text: "Guide" })]
 
 const thin = run([]);
 assert.equal(status(thin, "body-links"), "warning");
-
-const site: SiteCrawl = {
-  pages: [
-    { url: "https://example.com", depth: 0, out: ["https://example.com/blog"] },
-    { url: "https://example.com/blog", depth: 1, out: ["https://example.com/blog/pipes"] },
-    { url: "https://example.com/blog/pipes", depth: 2, out: ["https://example.com"] },
-    { url: "https://example.com/blog/deep/one", depth: 4, out: [] },
-  ],
-  capped: false,
-  homeFetched: true,
-  sitemapUrls: ["https://example.com", "https://example.com/blog", "https://example.com/orphan"],
-};
-const crawled = run([link({ href: "https://example.com/blog/pipes", text: "Pipe repair costs" })], { mode: "site", site });
-assert.equal(status(crawled, "orphans"), "error");
-assert.equal(status(crawled, "click-depth"), "warning");
-assert.equal(status(crawled, "link-hierarchy"), "pass");
 
 const html = `<!doctype html><body>
 <nav><a href="/">Home</a></nav>

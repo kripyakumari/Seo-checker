@@ -3,8 +3,8 @@ import { pageKeywordSignals, resolveFocusKeyword } from "@/lib/focus-from-page";
 import { assertPublic, FetchError } from "@/lib/images/public-url";
 import { prepareUrl } from "@/lib/meta-title/url";
 import { evaluateUrl } from "./checks";
-import { cleanUrl, samePage } from "./parse";
-import type { DuplicateProbe, RedirectHop, UrlResult, UrlTechnical } from "./types";
+import { samePage } from "./parse";
+import type { RedirectHop, UrlResult, UrlTechnical } from "./types";
 
 const HOP_TIMEOUT_MS = 8_000;
 const MAX_REDIRECTS = 5;
@@ -30,13 +30,10 @@ export async function analyzeUrl(input: { url?: string; keyword?: string }): Pro
     statusCode: main.statusCode,
     canonical,
     httpRedirectsToHttps: null,
-    duplicates: [],
   };
 
   if (main.reached && main.statusCode < 400) {
-    const [httpProbe, duplicates] = await Promise.all([probeHttp(target), probeDuplicates(target)]);
-    technical.httpRedirectsToHttps = httpProbe;
-    technical.duplicates = duplicates;
+    technical.httpRedirectsToHttps = await probeHttp(target);
   }
 
   const evaluation = evaluateUrl(target, keyword, technical);
@@ -62,54 +59,6 @@ async function probeHttp(finalUrl: string) {
   if (!chain.reached) return false;
   const permanent = chain.hops.slice(0, -1).some((hop) => hop.status === 301 || hop.status === 308);
   return permanent && samePage(chain.finalUrl, finalUrl);
-}
-
-async function probeDuplicates(finalUrl: string): Promise<DuplicateProbe[]> {
-  const primary = new URL(finalUrl);
-  const versions = alternateUrls(primary);
-  const probes = await Promise.all(versions.map(async (version) => ({ version, chain: await fetchChain(version.url) })));
-  return probes.map(({ version, chain }) => {
-    if (!chain.reached || chain.statusCode !== 200) {
-      return { label: version.label, bad: false, detail: chain.reached ? `HTTP ${chain.statusCode}` : "Could not be opened" };
-    }
-    const canonical = chain.html ? readCanonical(chain.html, chain.finalUrl) : null;
-    const redirected = chain.hops.slice(0, -1).some((hop) => hop.status === 301 || hop.status === 308) && samePage(chain.finalUrl, finalUrl);
-    const pointed = canonical != null && samePage(canonical, finalUrl);
-    if (redirected || pointed || samePage(chain.finalUrl, finalUrl)) {
-      return { label: version.label, bad: false, detail: redirected ? "301 to this URL" : "Canonical points here" };
-    }
-    return { label: version.label, bad: true, detail: `${version.url} returns HTTP 200` };
-  });
-}
-
-function alternateUrls(url: URL) {
-  const versions: { label: string; url: string }[] = [];
-  const host = url.hostname.toLowerCase();
-  if (!host.includes(":")) {
-    const flipped = new URL(url.toString());
-    flipped.hostname = host.startsWith("www.") ? host.slice(4) : `www.${host}`;
-    versions.push({ label: flipped.hostname.startsWith("www.") ? "www" : "non-www", url: flipped.toString() });
-  }
-  if (url.pathname !== "/") {
-    const slash = new URL(url.toString());
-    slash.pathname = url.pathname.endsWith("/") ? url.pathname.slice(0, -1) : `${url.pathname}/`;
-    versions.push({ label: "trailing slash", url: slash.toString() });
-  }
-  if (/[\p{L}]/u.test(url.pathname) && url.pathname !== url.pathname.toUpperCase()) {
-    const upper = new URL(url.toString());
-    upper.pathname = url.pathname.toUpperCase();
-    versions.push({ label: "uppercase", url: upper.toString() });
-  }
-  const index = new URL(url.toString());
-  if (url.pathname.toLowerCase().endsWith("/index.html")) {
-    index.pathname = url.pathname.replace(/\/index\.html$/i, "") || "/";
-    versions.push({ label: "without index.html", url: index.toString() });
-  } else {
-    index.pathname = `${url.pathname.endsWith("/") ? url.pathname : `${url.pathname}/`}index.html`;
-    versions.push({ label: "index.html", url: index.toString() });
-  }
-  const clean = cleanUrl(url.toString());
-  return versions.filter((version) => version.url !== url.toString() && version.url !== clean);
 }
 
 type Chain = {

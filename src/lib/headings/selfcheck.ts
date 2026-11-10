@@ -115,7 +115,6 @@ const button = run([heading(1, "Plumbing services"), heading(2, "Book now", { st
 assert.equal(status(button, "styling-misuse"), "warning");
 
 const unclear = run([heading(1, "Plumbing services"), heading(2, "Welcome to our website")]);
-assert.equal(status(unclear, "user-friendly"), "warning");
 assert.equal(status(unclear, "too-short"), "pass");
 
 const html = `<!doctype html><html><head><title>Plumbing costs</title></head><body>

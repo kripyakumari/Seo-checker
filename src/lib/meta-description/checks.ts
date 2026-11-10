@@ -30,10 +30,8 @@ export function evaluateDescription(input: {
     mobileWidth(pixels.width),
     keywordPresent(description, keyword),
     keywordVisible(description, keyword),
-    keywordRepeats(description, keyword),
     callToAction(description),
     differentFromTitle(description, input.title),
-    doubleQuotes(description),
     allCaps(description),
     emojiAndSymbols(description),
     endsCleanly(description, pixels.desktopCut),
@@ -186,38 +184,6 @@ function keywordVisible(description: string, keyword: string): DescriptionCheck 
   );
 }
 
-function keywordRepeats(description: string, keyword: string): DescriptionCheck {
-  if (!keyword) {
-    return row("keyword-repeats", "Keyword repeats", "1–2 times", "info", "No focus keyword was entered, so this was not scored.", null, 0, "");
-  }
-  if (!description) {
-    return row("keyword-repeats", "Keyword repeats", "1–2 times", "pass", "No description to repeat the keyword in.", null, 0, "");
-  }
-  const count = countPhrase(description, keyword);
-  if (count >= 3) {
-    return row(
-      "keyword-repeats",
-      "Keyword repeats",
-      "1–2 times",
-      "warning",
-      `“${keyword}” appears ${count} times.`,
-      "Keep the focus keyword to one or two natural uses.",
-      WARNING_POINTS,
-      "",
-    );
-  }
-  return row(
-    "keyword-repeats",
-    "Keyword repeats",
-    "1–2 times",
-    "pass",
-    count === 0 ? "The keyword is not repeated in the description." : `“${keyword}” appears ${count} time${count === 1 ? "" : "s"}.`,
-    null,
-    0,
-    "",
-  );
-}
-
 function callToAction(description: string): DescriptionCheck {
   if (!description) {
     return row("call-to-action", "Call to action", "Present (Shop, Learn, Compare, Get)", "warning", "No description to hold a call to action.", "Add a short CTA such as Learn, Shop, Compare, or Get.", WARNING_POINTS, "");
@@ -258,25 +224,6 @@ function differentFromTitle(description: string, title: string): DescriptionChec
     );
   }
   return row("different-from-title", "Different from title", "Adds new information", "pass", "The description adds information beyond the title.", null, 0, "");
-}
-
-function doubleQuotes(description: string): DescriptionCheck {
-  if (!description) {
-    return row("double-quotes", "Double quotes", "None", "pass", "No description to check for quotes.", null, 0, "");
-  }
-  if (description.includes('"') || description.includes("\u201c") || description.includes("\u201d")) {
-    return row(
-      "double-quotes",
-      "Double quotes",
-      "None",
-      "warning",
-      "The description contains double quotes.",
-      "Remove \" characters so they cannot break the meta tag.",
-      WARNING_POINTS,
-      "",
-    );
-  }
-  return row("double-quotes", "Double quotes", "None", "pass", "No double quotes.", null, 0, "");
 }
 
 function allCaps(description: string): DescriptionCheck {

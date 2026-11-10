@@ -22,7 +22,6 @@ const names = [
   "HTTPS",
   "Redirects",
   "Canonical",
-  "Duplicate versions",
 ];
 
 function live(url: string, extra: Partial<UrlTechnical> = {}): UrlTechnical {
@@ -32,7 +31,6 @@ function live(url: string, extra: Partial<UrlTechnical> = {}): UrlTechnical {
     statusCode: 200,
     canonical: url,
     httpRedirectsToHttps: true,
-    duplicates: [],
     ...extra,
   };
 }
@@ -44,7 +42,7 @@ function status(url: string, id: string, technical = live(url), keyword = "") {
 const good = "https://example.com/running-shoes-guide";
 const goodResult = evaluateUrl(good, "running shoes", live(good));
 assert.deepEqual(goodResult.checks.map((item) => item.parameter), names);
-assert.equal(goodResult.checks.length, 19);
+assert.equal(goodResult.checks.length, 18);
 assert.equal(goodResult.grade, "Excellent");
 assert.equal(status(good, "descriptive-slug"), "pass");
 assert.equal(status(good, "keyword-in-slug", live(good), ""), "info");
@@ -78,7 +76,6 @@ assert.equal(status(good, "redirects", live(good, { hops: [{ url: "https://examp
 assert.equal(status(good, "redirects", live(good, { hops: [{ url: "https://example.com/old", status: 301 }, { url: good, status: 200 }] })), "pass");
 assert.equal(status(good, "canonical", live(good, { canonical: "https://example.com/other" })), "warning");
 assert.equal(status(good, "canonical", live(good, { canonical: null })), "info");
-assert.equal(status(good, "duplicate-versions", live(good, { duplicates: [{ label: "www", bad: true, detail: "returns 200" }] })), "warning");
 assert.equal(status(good, "non-english", live("https://example.com/%E0%A4%B9%E0%A4%BF")), "pass");
 
 console.log(`url structure selfcheck passed ${goodResult.score} ${goodResult.grade}`);

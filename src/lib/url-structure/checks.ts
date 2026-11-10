@@ -31,7 +31,6 @@ export function evaluateUrl(target: string, keyword: string, technical: UrlTechn
     https(parts, technical),
     redirects(technical),
     canonical(parts, technical),
-    duplicates(technical),
   ];
   const score = clamp(100 + checks.reduce((sum, check) => sum + check.points, 0));
   return { score, grade: gradeFor(score), checks, cleanUrl: cleanUrl(target), slug: parts.slug };
@@ -199,16 +198,6 @@ function canonical(parts: UrlParts, technical: UrlTechnical): UrlCheck {
   if (!technical.canonical) return row("canonical", "Canonical", "Points to this URL", "info", "The page has no canonical tag.", "Add a canonical that points to this URL.", 0, "");
   if (samePage(technical.canonical, parts.href)) return row("canonical", "Canonical", "Points to this URL", "pass", "The canonical points to this URL.", null, 0, "");
   return row("canonical", "Canonical", "Points to this URL", "warning", `The canonical points to ${technical.canonical}.`, "Point the canonical at this URL, or make this URL the one you want indexed.", HIGH_WARN, "");
-}
-
-function duplicates(technical: UrlTechnical): UrlCheck {
-  if (!technical.reached) return skipped("duplicate-versions", "Duplicate versions", "Every other version 301-redirects or has a canonical to this URL");
-  if (technical.statusCode >= 400) return row("duplicate-versions", "Duplicate versions", "Every other version 301-redirects or has a canonical to this URL", "info", "Not checked, because this page did not return HTTP 200.", null, 0, "");
-  const bad = technical.duplicates.filter((probe) => probe.bad);
-  if (bad.length) {
-    return row("duplicate-versions", "Duplicate versions", "Every other version 301-redirects or has a canonical to this URL", "warning", `${bad.length} ${bad.length === 1 ? "version loads" : "versions load"} with HTTP 200 and no canonical to this URL.`, "301-redirect each version to this URL, or give it a canonical that points here.", HIGH_WARN, bad.map((probe) => `${probe.label}: ${probe.detail}`).join("\n"));
-  }
-  return row("duplicate-versions", "Duplicate versions", "Every other version 301-redirects or has a canonical to this URL", "pass", "The other versions redirect or point their canonical here.", null, 0, "");
 }
 
 function skipped(id: string, parameter: string, ideal: string): UrlCheck {

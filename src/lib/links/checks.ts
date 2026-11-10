@@ -1,4 +1,4 @@
-import type { CheckStatus, CrawledPage, FoundLink, LinkCheck, LinkEvaluation, LinkMode, SiteCrawl, TargetProbe } from "./types";
+import type { CheckStatus, FoundLink, LinkCheck, LinkEvaluation, LinkMode, SiteCrawl, TargetProbe } from "./types";
 
 const ERROR_POINTS = -20;
 const WARNING_POINTS = -8;
@@ -33,13 +33,6 @@ export function evaluateLinks(input: {
       : row("empty-anchor", "Empty anchor", "Text, or image with alt text", "pass", "Every internal link has text or image alt text.", null, 0, ""),
   );
 
-  const mixed = sameTextDifferentTargets(links);
-  checks.push(
-    mixed.length
-      ? row("same-anchor", "Same anchor, different pages", "One anchor text → one target", "warning", "The same anchor text points to 2 or more pages.", "Use one anchor text for one target.", WARNING_POINTS, mixed.join("\n"))
-      : row("same-anchor", "Same anchor, different pages", "One anchor text → one target", "pass", "Each anchor text points to one target.", null, 0, ""),
-  );
-
   checks.push(overOptimised(links, input.keyword));
   checks.push(contextual(links));
   checks.push(deepLinks(links));
@@ -50,14 +43,10 @@ export function evaluateLinks(input: {
       : row("body-links", "Internal links in body", "At least 1", "pass", `${body.length} internal ${body.length === 1 ? "link" : "links"} in the body.`, null, 0, ""),
   );
   checks.push(broken(input.probes, input.targetsChecked, input.targetsTotal));
-  checks.push(redirected(input.probes));
   checks.push(flag(links, "nofollow", "Nofollow", "Internal links followed", (link) => link.nofollow, "warning", "rel=\"nofollow\" is set on an internal link.", "Remove nofollow from internal links so they pass equity.", WARNING_POINTS));
   checks.push(flag(links, "https", "HTTPS", "Internal links use https", (link) => link.insecure, "warning", "An internal link uses http://.", "Point internal links at the https URL.", WARNING_POINTS));
   checks.push(flag(links, "parameters", "Parameters", "Clean URLs", (link) => link.parameterized, "warning", "A link contains a tracking, session, or sort parameter.", "Link to the clean URL, without utm, session, or sort parameters.", WARNING_POINTS));
   checks.push(noindex(input.probes));
-  checks.push(orphans(input.mode, input.site));
-  checks.push(clickDepth(input.mode, input.site));
-  checks.push(hierarchy(input.mode, input.site));
 
   return {
     score: clamp(100 + checks.reduce((sum, item) => sum + item.points, 0)),
@@ -140,104 +129,12 @@ function broken(probes: TargetProbe[], checked: number, total: number): LinkChec
   return row("broken", "Broken links", "All return 200", "pass", probes.length === 0 ? "No internal targets to fetch." : `Fetched targets returned HTTP 200.${cap}`, null, 0, "");
 }
 
-function redirected(probes: TargetProbe[]): LinkCheck {
-  const hops = probes.filter((probe) => probe.redirects > 0 && (probe.status === null || probe.status < 400));
-  if (hops.length === 0) {
-    return row("redirected", "Redirected links", "Point to the final URL", "pass", "Internal links point at URLs that do not redirect.", null, 0, "");
-  }
-  return row("redirected", "Redirected links", "Point to the final URL", "warning", `${hops.length} internal ${hops.length === 1 ? "link points" : "links point"} at a redirected URL.`, "Update the link to the final URL.", WARNING_POINTS, hops.map((probe) => `${probe.url} → ${probe.finalUrl}`).join("\n"));
-}
-
 function noindex(probes: TargetProbe[]): LinkCheck {
   const blocked = probes.filter((probe) => probe.noindex || probe.canonicalElsewhere);
   if (blocked.length === 0) {
     return row("noindex", "Links to noindex", "Links point to indexable pages", "pass", "Fetched targets are not noindex, and are not canonicalised elsewhere.", null, 0, "");
   }
   return row("noindex", "Links to noindex", "Links point to indexable pages", "warning", `${blocked.length} ${blocked.length === 1 ? "target is" : "targets are"} noindex or canonicalised elsewhere.`, "Link to the indexable URL, not a noindex or canonicalised page.", WARNING_POINTS, blocked.map((probe) => `${probe.url}${probe.noindex ? " — noindex" : " — canonical points elsewhere"}`).join("\n"));
-}
-
-function orphans(mode: LinkMode, site: SiteCrawl | null): LinkCheck {
-  if (mode !== "site") {
-    return row("orphans", "Orphan pages", "Every page has 1+ internal link in", "info", "Whole site mode is off, so orphan pages were not scored.", null, 0, "This row does not lower the score.");
-  }
-  if (!site) {
-    return row("orphans", "Orphan pages", "Every page has 1+ internal link in", "info", "The site crawl did not finish, so orphan pages were not scored.", null, 0, "This row does not lower the score.");
-  }
-  if (site.capped) {
-    return row("orphans", "Orphan pages", "Every page has 1+ internal link in", "info", "The crawl stopped at the page limit, so orphan pages were not scored.", null, 0, "This row does not lower the score.");
-  }
-  if (site.sitemapUrls.length === 0) {
-    return row("orphans", "Orphan pages", "Every page has 1+ internal link in", "info", "No sitemap was found, so pages with zero links in could not be listed.", null, 0, "");
-  }
-  if (site.pages.length < 2) {
-    return row("orphans", "Orphan pages", "Every page has 1+ internal link in", "pass", "Only one page was crawled, so nothing else can be an orphan.", null, 0, "");
-  }
-  const incoming = inCounts(site.pages);
-  const orphaned = site.sitemapUrls.filter((url) => (incoming.get(url) ?? 0) === 0);
-  if (orphaned.length === 0) {
-    return row("orphans", "Orphan pages", "Every page has 1+ internal link in", "pass", "Every sitemap URL has an internal link pointing to it.", null, 0, "");
-  }
-  return row("orphans", "Orphan pages", "Every page has 1+ internal link in", "error", `${orphaned.length} sitemap ${orphaned.length === 1 ? "page has" : "pages have"} no internal link pointing to ${orphaned.length === 1 ? "it" : "them"}.`, "Add an internal link to each orphan from a related page.", ERROR_POINTS, orphaned.slice(0, 12).join("\n"));
-}
-
-function clickDepth(mode: LinkMode, site: SiteCrawl | null): LinkCheck {
-  if (mode !== "site") {
-    return row("click-depth", "Click depth", "Important pages within 3 clicks of home", "info", "Whole site mode is off, so click depth was not scored.", null, 0, "This row does not lower the score.");
-  }
-  if (!site) {
-    return row("click-depth", "Click depth", "Important pages within 3 clicks of home", "info", "The site crawl did not finish, so click depth was not scored.", null, 0, "This row does not lower the score.");
-  }
-  if (!site.homeFetched) {
-    return row("click-depth", "Click depth", "Important pages within 3 clicks of home", "info", "Home could not be fetched, so click depth was not scored.", null, 0, "");
-  }
-  const deep = site.pages.filter((page) => page.depth >= 4);
-  if (deep.length === 0) {
-    return row("click-depth", "Click depth", "Important pages within 3 clicks of home", "pass", "No crawled page is 4 or more clicks from home.", null, 0, "");
-  }
-  return row("click-depth", "Click depth", "Important pages within 3 clicks of home", "warning", `${deep.length} crawled ${deep.length === 1 ? "page is" : "pages are"} 4 or more clicks from home.`, "Link to that page from somewhere closer to home.", WARNING_POINTS, deep.map((page) => `${page.url} — ${page.depth} clicks`).join("\n"));
-}
-
-function hierarchy(mode: LinkMode, site: SiteCrawl | null): LinkCheck {
-  if (mode !== "site") {
-    return row("link-hierarchy", "Link hierarchy", "Key pages get the most internal links", "info", "Whole site mode is off, so link hierarchy was not scored.", null, 0, "This row does not lower the score.");
-  }
-  if (!site) {
-    return row("link-hierarchy", "Link hierarchy", "Key pages get the most internal links", "info", "The site crawl did not finish, so link hierarchy was not scored.", null, 0, "This row does not lower the score.");
-  }
-  if (!site.homeFetched) {
-    return row("link-hierarchy", "Link hierarchy", "Key pages get the most internal links", "info", "Home could not be fetched, so link hierarchy was not scored.", null, 0, "");
-  }
-  const incoming = inCounts(site.pages);
-  const key = site.pages.filter((page) => page.depth <= 1);
-  const minor = site.pages.filter((page) => page.depth >= 2);
-  const weakKey = key.filter((page) => minor.some((other) => (incoming.get(other.url) ?? 0) > (incoming.get(page.url) ?? 0)));
-  if (minor.length === 0 || weakKey.length === 0) {
-    return row("link-hierarchy", "Link hierarchy", "Key pages get the most internal links", "pass", "No key page has fewer internal links than a deeper page.", null, 0, "");
-  }
-  return row("link-hierarchy", "Link hierarchy", "Key pages get the most internal links", "warning", "A key page has fewer internal links than a deeper page.", "Add internal links to the key page from related pages.", WARNING_POINTS, weakKey.map((page) => page.url).join("\n"));
-}
-
-function inCounts(pages: CrawledPage[]) {
-  const counts = new Map<string, number>();
-  for (const page of pages) counts.set(page.url, 0);
-  for (const page of pages) {
-    for (const target of new Set(page.out)) {
-      if (counts.has(target) && target !== page.url) counts.set(target, (counts.get(target) ?? 0) + 1);
-    }
-  }
-  return counts;
-}
-
-function sameTextDifferentTargets(links: FoundLink[]) {
-  const groups = new Map<string, Set<string>>();
-  for (const link of links) {
-    const key = plain(link.text);
-    if (!key) continue;
-    const set = groups.get(key) ?? new Set<string>();
-    set.add(link.href);
-    groups.set(key, set);
-  }
-  return [...groups.entries()].filter(([, targets]) => targets.size >= 2).map(([text, targets]) => `${text} → ${[...targets].join(", ")}`);
 }
 
 function flag(

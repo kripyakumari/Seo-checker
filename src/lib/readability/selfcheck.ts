@@ -11,7 +11,6 @@ const names = [
   "Minimum text length",
   "Flesch Reading Ease",
   "Grade level (Flesch-Kincaid)",
-  "Gunning Fog index",
   "Average sentence length",
   "Long sentences",
   "Very long sentences",
@@ -49,7 +48,7 @@ const easySentences = [
 const easy = extractFromText(easySentences.join(" "), "en");
 const easyResult = evaluateReadability(easy);
 assert.deepEqual(easyResult.checks.map((item) => item.parameter), names);
-assert.equal(easyResult.checks.length, 22);
+assert.equal(easyResult.checks.length, 21);
 assert.ok((easy.flesch ?? 0) >= 60);
 assert.equal(status(easy, "very-long"), "pass");
 assert.equal(status(easy, "minimum-length"), "pass");
@@ -89,6 +88,5 @@ assert.equal(status({ ...gradeBase, gradeLevel: 12 }, "grade-level"), "pass");
 assert.equal(status({ ...gradeBase, gradeLevel: 12.1 }, "grade-level"), "warning");
 assert.equal(status({ ...gradeBase, flesch: 30 }, "flesch"), "warning");
 assert.equal(status({ ...gradeBase, flesch: 29.9 }, "flesch"), "error");
-assert.equal(status({ ...gradeBase, fog: 12 }, "gunning-fog"), "warning");
 
 console.log(`readability selfcheck passed ${easyResult.score} ${easyResult.grade}`);

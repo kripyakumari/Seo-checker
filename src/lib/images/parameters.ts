@@ -17,16 +17,11 @@ const ORDER: { id: string; name: string; group: string; absent: string; absentSt
   { id: "alt-stuffing", name: "Alt stuffing & duplicates", group: "Alt text", absent: "Alt text is natural and not repeated on 3 or more images.", absentStatus: "pass" },
   { id: "file-name", name: "Descriptive file name", group: "File name", absent: "File names describe the picture, or they come from an image CDN.", absentStatus: "pass" },
   { id: "weight", name: "Image weight", group: "File size", absent: "No image is over 300 KB.", absentStatus: "pass" },
-  { id: "right-sized", name: "Right-sized image", group: "File size", absent: "Images are served at most twice the size they are shown.", absentStatus: "pass" },
-  { id: "page-weight", name: "Total image weight", group: "File size", absent: "Image files on this page are under 1.5 MB.", absentStatus: "pass" },
   { id: "modern-format", name: "Modern format", group: "Format", absent: "Large photos are WebP or AVIF, or they are small files.", absentStatus: "pass" },
-  { id: "dimensions-attr", name: "Width & height set", group: "Display", absent: "Content images set width and height, or an aspect ratio.", absentStatus: "pass" },
   { id: "lazy-loading", name: "Lazy loading", group: "Display", absent: "Images below the first one are not all loading at once.", absentStatus: "pass" },
   { id: "hero-lazy", name: "Hero image not lazy", group: "Display", absent: "The top image loads immediately.", absentStatus: "pass" },
   { id: "broken", name: "Broken images", group: "Technical", absent: "No image returned an error status.", absentStatus: "pass" },
-  { id: "indexable", name: "Indexable images", group: "Technical", absent: "Images use an indexable format in an img tag and are not blocked.", absentStatus: "pass" },
   { id: "crawlable-source", name: "Crawlable image source", group: "Technical", absent: "Image addresses are in the src attribute.", absentStatus: "pass" },
-  { id: "mixed-content", name: "Mixed content", group: "Technical", absent: "Image addresses use https.", absentStatus: "pass" },
 ];
 
 type Hit = ImageCheck & { image: ImageRow | null };

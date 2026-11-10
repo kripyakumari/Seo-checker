@@ -3,8 +3,6 @@ import { evaluateKeyword } from "./checks";
 import type { KeywordPage } from "./types";
 
 const names = [
-  "Search volume",
-  "Keyword difficulty",
   "Search intent",
   "Better keyword",
   "In title",
@@ -64,9 +62,7 @@ function status(id: string, subject = page(), keyword = "running shoes", seconda
 
 const good = evaluateKeyword(page(), "running shoes", ["cushion"]);
 assert.deepEqual(good.checks.map((item) => item.parameter), names);
-assert.equal(good.checks.length, 25);
-assert.equal(status("search-volume"), "info");
-assert.equal(status("keyword-difficulty"), "info");
+assert.equal(good.checks.length, 23);
 assert.equal(status("search-intent"), "info");
 assert.equal(status("better-keyword"), "info");
 assert.equal(status("density"), "info");

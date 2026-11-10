@@ -264,24 +264,6 @@ export function evaluateHeadings(input: {
     checks.push(row("styling-misuse", "Styling misuse", "Headings mark sections", "pass", "Headings are marking sections.", null, 0, ""));
   }
 
-  const unclear = headings.filter((heading) => isUnclear(heading.text));
-  if (unclear.length > 0) {
-    checks.push(
-      row(
-        "user-friendly",
-        "User-friendly heading",
-        "The heading helps the reader understand the content",
-        "warning",
-        "A heading does not say what the section is about.",
-        "Rewrite the heading so a reader can tell what comes next.",
-        WARNING_POINTS,
-        unclear.map((heading) => `H${heading.level}: ${heading.text}`).join("\n"),
-      ),
-    );
-  } else {
-    checks.push(row("user-friendly", "User-friendly heading", "The heading helps the reader understand the content", "pass", "Headings state what the section is about.", null, 0, ""));
-  }
-
   const score = clamp(100 + checks.reduce((sum, item) => sum + item.points, 0));
   return {
     score,
@@ -481,12 +463,6 @@ function duplicateTexts(headings: FoundHeading[]) {
 function isGenericShort(text: string) {
   const words = wordsOf(text);
   return words.length >= 1 && words.length <= 2 && words.every((word) => GENERIC.has(word));
-}
-
-function isUnclear(text: string) {
-  const words = wordsOf(text);
-  if (words.length < 3) return false;
-  return words.every((word) => GENERIC.has(word) || STOP.has(word));
 }
 
 function wordsOf(text: string) {

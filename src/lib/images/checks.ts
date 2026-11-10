@@ -5,10 +5,6 @@ const ERROR_POINTS = -20;
 const WARNING_POINTS = -8;
 const KB = 1024;
 const MB = 1024 * 1024;
-const PAGE_WEIGHT = 1.5 * MB;
-const MOBILE_CSS_WIDTH = 390;
-const INDEXABLE = new Set(["jpeg", "png", "webp", "avif", "gif", "svg", "bmp"]);
-const UNSUPPORTED = new Set(["tiff", "tif", "heic", "heif"]);
 const GENERIC_ALT = new Set(["image", "img", "photo", "picture", "pic", "graphic", "banner", "placeholder", "untitled"]);
 
 export type { MeasuredImage };
@@ -34,8 +30,6 @@ export function evaluateImages(input: CheckInput): ImageEvaluation {
       hero: hero === image,
       altCounts,
       keyword: input.keyword,
-      blocked: input.robotsBlocked.has(image.url),
-      pageHttps: input.pageHttps,
     }),
   );
 
@@ -45,23 +39,6 @@ export function evaluateImages(input: CheckInput): ImageEvaluation {
 
   if (input.images.length === 0) {
     pageChecks.push(check("images-found", "Images found", "info", "No images on this page.", null, 0));
-  }
-
-  if (counted.length === 0) {
-    pageChecks.push(check("page-weight", "Total image weight", "pass", "No images to weigh.", null, 0));
-  } else if (totalBytes > PAGE_WEIGHT) {
-    pageChecks.push(
-      check(
-        "page-weight",
-        "Total image weight",
-        "warning",
-        `${formatBytes(totalBytes)} of images on this page. The limit is 1.5 MB.`,
-        "Compress or resize images until the page is under 1.5 MB.",
-        WARNING_POINTS,
-      ),
-    );
-  } else {
-    pageChecks.push(check("page-weight", "Total image weight", "pass", `${formatBytes(totalBytes)} of images, under 1.5 MB.`, null, 0));
   }
 
   const below = input.images.filter((image) => isRealImage(image) && !skipAltAndSize(image) && image !== hero);
@@ -101,7 +78,7 @@ export function evaluateImages(input: CheckInput): ImageEvaluation {
 function scoreImage(
   image: MeasuredImage,
   index: number,
-  context: { hero: boolean; altCounts: Map<string, number>; keyword: string; blocked: boolean; pageHttps: boolean },
+  context: { hero: boolean; altCounts: Map<string, number>; keyword: string },
 ): ImageRow {
   const checks: ImageCheck[] = [];
   const tiny = skipAltAndSize(image);
@@ -191,72 +168,24 @@ function scoreImage(
 
   if (!tiny && !image.cssOnly && !image.fetchError && image.statusCode === 200) {
     pushWeight(checks, image);
-    pushRightSized(checks, image);
     pushFormat(checks, image);
   }
 
-  if (real && !tiny) {
-    if ((image.widthAttr !== null && image.heightAttr !== null) || image.aspectRatio) {
-      checks.push(check("dimensions-attr", "Width & height set", "pass", image.aspectRatio && (image.widthAttr === null || image.heightAttr === null) ? "The image sets an aspect ratio." : "Width and height are set.", null, 0));
-    } else {
+  if (real && !tiny && context.hero) {
+    if (image.loading === "lazy" || image.lazyOnly) {
       checks.push(
         check(
-          "dimensions-attr",
-          "Width & height set",
+          "hero-lazy",
+          "Hero image not lazy",
           "warning",
-          "The img is missing width and height, and it has no aspect ratio.",
-          "Set width and height on the img, or add a CSS aspect-ratio.",
+          "The top image is set to load later.",
+          "Let the top image load immediately. Keep lazy loading for images further down the page.",
           WARNING_POINTS,
         ),
       );
+    } else {
+      checks.push(check("hero-lazy", "Hero image not lazy", "pass", "The top image loads immediately.", null, 0));
     }
-
-    if (context.hero) {
-      if (image.loading === "lazy" || image.lazyOnly) {
-        checks.push(
-          check(
-            "hero-lazy",
-            "Hero image not lazy",
-            "warning",
-            "The top image is set to load later.",
-            "Let the top image load immediately. Keep lazy loading for images further down the page.",
-            WARNING_POINTS,
-          ),
-        );
-      } else {
-        checks.push(check("hero-lazy", "Hero image not lazy", "pass", "The top image loads immediately.", null, 0));
-      }
-    }
-  }
-
-  if (image.cssOnly && !tiny) {
-    checks.push(
-      check(
-        "indexable",
-        "Indexable images",
-        "warning",
-        "This key image is only a CSS background.",
-        "Put the image in an img tag so Google can index it.",
-        WARNING_POINTS,
-      ),
-    );
-  } else if (context.blocked) {
-    checks.push(
-      check("indexable", "Indexable images", "warning", "robots.txt blocks this image.", "Allow the image path in robots.txt so Google can crawl it.", WARNING_POINTS),
-    );
-  } else if (UNSUPPORTED.has(image.format)) {
-    checks.push(
-      check(
-        "indexable",
-        "Indexable images",
-        "warning",
-        `${image.format.toUpperCase()} is not a format Google indexes as an image.`,
-        "Use JPEG, PNG, WebP, AVIF, GIF, or SVG.",
-        WARNING_POINTS,
-      ),
-    );
-  } else if (!image.fetchError && (image.statusCode === 200 || image.statusCode === null) && INDEXABLE.has(image.format) && real) {
-    checks.push(check("indexable", "Indexable images", "pass", `${image.format.toUpperCase()} is in an img tag and is not blocked.`, null, 0));
   }
 
   if (real) {
@@ -274,14 +203,6 @@ function scoreImage(
     } else {
       checks.push(check("crawlable-source", "Crawlable image source", "pass", "The image address is in src.", null, 0));
     }
-  }
-
-  if (context.pageHttps && image.url.startsWith("http://")) {
-    checks.push(
-      check("mixed-content", "Mixed content", "warning", "This image uses http on an https page.", "Change the image address to https.", WARNING_POINTS),
-    );
-  } else {
-    checks.push(check("mixed-content", "Mixed content", "pass", context.pageHttps ? "The image address uses https." : "The page is not https, so mixed content does not apply.", null, 0));
   }
 
   const penalty = checks.some((item) => item.points < 0);
@@ -321,29 +242,6 @@ function pushWeight(checks: ImageCheck[], image: MeasuredImage) {
     return;
   }
   checks.push(check("weight", "Image weight", "pass", `${formatBytes(image.bytes)} is within the limit.`, null, 0));
-}
-
-function pushRightSized(checks: ImageCheck[], image: MeasuredImage) {
-  if (image.ogOnly || image.width === null) return;
-  if (image.responsive) {
-    checks.push(check("right-sized", "Right-sized image", "pass", "The image uses srcset or picture, so a smaller screen can load a closer file.", null, 0));
-    return;
-  }
-  const shown = image.widthAttr && image.widthAttr > 0 ? image.widthAttr : MOBILE_CSS_WIDTH;
-  if (image.width > shown * 2) {
-    checks.push(
-      check(
-        "right-sized",
-        "Right-sized image",
-        "warning",
-        `The file is ${image.width}px wide and the page shows it near ${shown}px.`,
-        "Serve a file at most twice the display size, or add srcset.",
-        WARNING_POINTS,
-      ),
-    );
-    return;
-  }
-  checks.push(check("right-sized", "Right-sized image", "pass", "The file is at most twice the size it is shown.", null, 0));
 }
 
 function pushFormat(checks: ImageCheck[], image: MeasuredImage) {

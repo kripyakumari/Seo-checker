@@ -2,7 +2,7 @@ import type { ReadabilityCheck, ReadabilityDocument, ReadabilityEvaluation } fro
 
 const ERROR_POINTS = -20;
 const WARNING_POINTS = -8;
-const BASIC = new Set(["minimum-length", "flesch", "grade-level", "gunning-fog", "language"]);
+const BASIC = new Set(["minimum-length", "flesch", "grade-level", "language"]);
 const KEPT_WHEN_FOREIGN = new Set(["language"]);
 
 export function evaluateReadability(input: ReadabilityDocument): ReadabilityEvaluation {
@@ -10,7 +10,6 @@ export function evaluateReadability(input: ReadabilityDocument): ReadabilityEval
     minimumLength(input),
     flesch(input),
     gradeLevel(input),
-    fog(input),
     averageSentence(input),
     longSentences(input),
     veryLong(input),
@@ -93,13 +92,6 @@ function gradeLevel(input: ReadabilityDocument): ReadabilityCheck {
   const grade = round1(input.gradeLevel);
   if (input.gradeLevel > 12) return row("grade-level", "Grade level (Flesch-Kincaid)", "Grade 6–9", "warning", `The grade level is ${grade}, above grade 12.`, "Use shorter sentences and simpler words so the grade falls.", WARNING_POINTS, "");
   return row("grade-level", "Grade level (Flesch-Kincaid)", "Grade 6–9", "pass", `The grade level is ${grade}.`, null, 0, "");
-}
-
-function fog(input: ReadabilityDocument): ReadabilityCheck {
-  if (input.fog == null) return row("gunning-fog", "Gunning Fog index", "Under 12", "info", "There are not enough sentences to calculate the Gunning Fog index.", null, 0, "");
-  const score = round1(input.fog);
-  if (input.fog >= 12) return row("gunning-fog", "Gunning Fog index", "Under 12", "warning", `The Fog index is ${score}. 12 or above is hard to read.`, "Cut long sentences and words of 3 or more syllables.", WARNING_POINTS, "");
-  return row("gunning-fog", "Gunning Fog index", "Under 12", "pass", `The Fog index is ${score}.`, null, 0, "");
 }
 
 function averageSentence(input: ReadabilityDocument): ReadabilityCheck {

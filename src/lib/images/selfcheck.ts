@@ -51,7 +51,7 @@ function rows(result: ReturnType<typeof run>) {
 const good = run([image()]);
 assert.equal(good.score, 100);
 assert.equal(good.grade, "Excellent");
-assert.equal(rows(good).length, 15);
+assert.equal(rows(good).length, 10);
 assert.deepEqual(
   rows(good).map((item) => item.name),
   [
@@ -60,16 +60,11 @@ assert.deepEqual(
     "Alt stuffing & duplicates",
     "Descriptive file name",
     "Image weight",
-    "Right-sized image",
-    "Total image weight",
     "Modern format",
-    "Width & height set",
     "Lazy loading",
     "Hero image not lazy",
     "Broken images",
-    "Indexable images",
     "Crawlable image source",
-    "Mixed content",
   ],
 );
 
@@ -155,15 +150,6 @@ assert.equal(byId(over300.images[0], "weight")?.status, "warning");
 const overMb = run([image({ bytes: Math.floor(1.2 * 1024 * 1024) })]);
 assert.equal(byId(overMb.images[0], "weight")?.status, "error");
 
-const oversized = run([image({ width: 2000, widthAttr: 800, responsive: false, modernSource: true })]);
-assert.equal(byId(oversized.images[0], "right-sized")?.status, "warning");
-
-const exactDouble = run([image({ width: 1600, widthAttr: 800, responsive: false })]);
-assert.equal(byId(exactDouble.images[0], "right-sized")?.status, "pass");
-
-const withSrcset = run([image({ width: 2000, widthAttr: 400, responsive: true })]);
-assert.equal(byId(withSrcset.images[0], "right-sized")?.status, "pass");
-
 const broken = run([image({ statusCode: 404, bytes: null })]);
 assert.equal(byId(broken.images[0], "broken")?.status, "error");
 assert.equal(byId(broken.images[0], "broken")?.points, -20);
@@ -188,12 +174,6 @@ const belowOk = run([
 ]);
 assert.equal(belowOk.checks.find((item) => item.id === "lazy-loading")?.status, "pass");
 
-const ratio = run([image({ widthAttr: null, heightAttr: null, aspectRatio: true, responsive: true, width: 800 })]);
-assert.equal(byId(ratio.images[0], "dimensions-attr")?.status, "pass");
-
-const missingBox = run([image({ widthAttr: null, heightAttr: null, aspectRatio: false, responsive: true, width: 800 })]);
-assert.equal(byId(missingBox.images[0], "dimensions-attr")?.status, "warning");
-
 const largeJpeg = run([
   image({
     bytes: 180 * 1024,
@@ -205,38 +185,13 @@ const largeJpeg = run([
   }),
 ]);
 assert.equal(byId(largeJpeg.images[0], "modern-format")?.status, "warning");
-assert.equal(byId(largeJpeg.images[0], "right-sized")?.status, "pass");
 
 const small = run([image({ bytes: 20 * 1024, width: 400, height: 300, responsive: false, modernSource: false })]);
 assert.equal(byId(small.images[0], "modern-format")?.status, "pass");
 
-const heavyPage = run([
-  image({ bytes: 800 * 1024, url: "https://example.com/a.jpg", name: "a-photo.jpg", alt: "First photo of shoes" }),
-  image({ bytes: 800 * 1024, url: "https://example.com/b.jpg", name: "b-photo.jpg", alt: "Second photo of shoes" }),
-]);
-assert.equal(heavyPage.checks.find((item) => item.id === "page-weight")?.status, "warning");
-assert.equal(heavyPage.checks.find((item) => item.id === "page-weight")?.points, -8);
-
-const httpImage = run([image({ url: "http://example.com/red-running-shoes.jpg" })]);
-assert.equal(byId(httpImage.images[0], "mixed-content")?.status, "warning");
-
-const httpPage = run([image({ url: "http://example.com/red-running-shoes.jpg" })], "", false);
-assert.equal(byId(httpPage.images[0], "mixed-content")?.status, "pass");
-
 const hidden = run([image({ lazyOnly: true, loading: null })]);
 assert.equal(byId(hidden.images[0], "crawlable-source")?.status, "warning");
 assert.equal(byId(hidden.images[0], "hero-lazy")?.status, "warning");
-
-const tiff = run([image({ format: "tiff", modernSource: false, bytes: 20 * 1024 })]);
-assert.equal(byId(tiff.images[0], "indexable")?.status, "warning");
-
-const blocked = evaluateImages({
-  images: [image()],
-  keyword: "",
-  robotsBlocked: new Set(["https://example.com/red-running-shoes.jpg"]),
-  pageHttps: true,
-});
-assert.equal(byId(blocked.images[0], "indexable")?.status, "warning");
 
 const none = run([]);
 assert.equal(none.score, 100);
@@ -254,9 +209,8 @@ const cssOnly = run([
     inContent: false,
   }),
 ]);
-assert.equal(byId(cssOnly.images[0], "indexable")?.status, "warning");
-assert.equal(cssOnly.images[0].scored, true);
-assert.ok(cssOnly.score < 100);
+assert.equal(cssOnly.images[0].scored, false);
+assert.equal(cssOnly.score, 100);
 
 const png = new Uint8Array(24);
 png.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52]);

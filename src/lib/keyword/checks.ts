@@ -13,8 +13,6 @@ export function evaluateKeyword(page: KeywordPage, keyword: string, secondary: s
   const density = densityPct(page.wordCount, bodyExact, wordsOf(key).length);
 
   const checks: KeywordCheck[] = [
-    searchVolume(),
-    keywordDifficulty(),
     pageSearchIntent(page),
     betterKeyword(),
     inTitle(page.title, key),
@@ -56,32 +54,6 @@ export function evaluateKeyword(page: KeywordPage, keyword: string, secondary: s
 const STOP_WORDS = new Set([
   "the", "a", "an", "and", "or", "to", "of", "in", "on", "for", "is", "are", "was", "were", "be", "been", "with", "this", "that", "these", "those", "your", "you", "from", "as", "at", "by", "it", "its", "we", "our", "they", "their", "not", "but", "if", "than", "then", "so", "can", "will", "just", "about", "into", "over", "after", "before", "also", "more", "most", "other", "some", "such", "only", "own", "same", "too", "very", "have", "has", "had", "do", "does", "did", "all", "any", "each", "few", "how", "what", "when", "where", "which", "who", "why",
 ]);
-
-function searchVolume(): KeywordCheck {
-  return row(
-    "search-volume",
-    "Search volume",
-    "Shown for the focus keyword",
-    "info",
-    "Search volume is not shown.",
-    null,
-    0,
-    "No keyword API is connected, so this row is not scored.",
-  );
-}
-
-function keywordDifficulty(): KeywordCheck {
-  return row(
-    "keyword-difficulty",
-    "Keyword difficulty",
-    "Shown, 0–100",
-    "info",
-    "Keyword difficulty is not shown.",
-    null,
-    0,
-    "No keyword API is connected, so this row is not scored.",
-  );
-}
 
 function betterKeyword(): KeywordCheck {
   return row(

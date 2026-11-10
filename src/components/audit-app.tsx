@@ -372,20 +372,20 @@ export function AuditApp() {
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <div className={onBlueStage ? "stage-canvas flex flex-col" : "flex min-h-0 flex-1 flex-col"}>
-      <header className={onBlueStage ? "no-print relative z-20" : "no-print sticky top-0 z-20 border-b border-line bg-card/95 backdrop-blur"}>
+      <div className={onBlueStage ? "stage-canvas flex min-h-0 flex-1 flex-col" : "flex min-h-0 flex-1 flex-col"}>
+      <header className="no-print sticky top-0 z-20 border-b border-line bg-card/95 backdrop-blur">
         <div className="flex w-full items-center gap-3 px-3 py-3.5 sm:px-5 lg:px-8">
           <button type="button" onClick={goAudit} className="flex shrink-0 items-center gap-2.5 text-left">
-            <span className={`grid h-9 w-9 place-items-center rounded-lg text-sm font-semibold ${onBlueStage ? "bg-white text-[#1d4ed8]" : "bg-[#2563eb] text-white"}`}>b</span>
+            <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#2563eb] text-sm font-semibold text-white">b</span>
             <span className="leading-tight">
-              <span className={`block text-lg font-semibold tracking-tight ${onBlueStage ? "text-white" : "text-ink"}`}>biziol</span>
-              <span className={`block text-[10px] font-semibold uppercase tracking-[0.14em] ${onBlueStage ? "text-white/70" : "text-muted"}`}>SEO audit</span>
+              <span className="block text-lg font-semibold tracking-tight text-ink">biziol</span>
+              <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">SEO audit</span>
             </span>
           </button>
 
           {phase === "loading" ? (
             <form
-              className="mx-auto hidden min-w-0 max-w-xl flex-1 overflow-hidden rounded-full bg-white sm:flex"
+              className="mx-auto hidden min-w-0 max-w-xl flex-1 overflow-hidden rounded-full border border-[#c5ced9] bg-white sm:flex"
               onSubmit={(event) => {
                 event.preventDefault();
                 void check();
@@ -397,13 +397,13 @@ export function AuditApp() {
               </button>
             </form>
           ) : (
-            <nav className={`mx-auto hidden items-center gap-1 md:flex ${onBlueStage ? "text-white" : "text-ink"}`} aria-label="Main">
+            <nav className="mx-auto hidden items-center gap-1 text-ink md:flex" aria-label="Main">
               <div className="relative" data-nav-menu>
                 <button
                   type="button"
                   aria-expanded={menuOpen === "product"}
                   onClick={() => setMenuOpen(menuOpen === "product" ? null : "product")}
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition ${onBlueStage ? "hover:bg-white/10" : "hover:bg-[#f4f7fb]"} ${section === "audit" ? (onBlueStage ? "bg-white/15" : "text-[#2563eb]") : ""}`}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition hover:bg-[#f4f7fb] ${section === "audit" ? "text-[#2563eb]" : ""}`}
                 >
                   Product
                   <NavChevron open={menuOpen === "product"} />
@@ -425,7 +425,7 @@ export function AuditApp() {
                   type="button"
                   aria-expanded={menuOpen === "resources"}
                   onClick={() => setMenuOpen(menuOpen === "resources" ? null : "resources")}
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition ${onBlueStage ? "hover:bg-white/10" : "hover:bg-[#f4f7fb]"}`}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition hover:bg-[#f4f7fb]"
                 >
                   Resources
                   <NavChevron open={menuOpen === "resources"} />
@@ -448,7 +448,7 @@ export function AuditApp() {
               <button
                 type="button"
                 onClick={goReports}
-                className={`rounded-lg px-3 py-2 text-sm font-medium transition ${onBlueStage ? "hover:bg-white/10" : "hover:bg-[#f4f7fb]"} ${section === "reports" ? (onBlueStage ? "bg-white/15" : "text-[#2563eb]") : ""}`}
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition hover:bg-[#f4f7fb] ${section === "reports" ? "text-[#2563eb]" : ""}`}
               >
                 Reports
               </button>
@@ -459,14 +459,14 @@ export function AuditApp() {
             <button
               type="button"
               onClick={() => goAnchor("how-to-use")}
-              className={`hidden text-sm font-medium transition sm:inline-flex ${onBlueStage ? "text-white/90 hover:text-white" : "text-ink/80 hover:text-ink"}`}
+              className="hidden text-sm font-medium text-ink/80 transition hover:text-ink sm:inline-flex"
             >
               How it works
             </button>
             <button
               type="button"
               onClick={goHeroCheck}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition sm:px-5 ${onBlueStage ? "bg-white text-[#1d4ed8] hover:bg-white/90" : "bg-[#2563eb] text-white hover:bg-[#1d4ed8]"}`}
+              className="rounded-full bg-[#2563eb] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1d4ed8] sm:px-5"
             >
               Run free audit
             </button>
@@ -491,7 +491,7 @@ export function AuditApp() {
             className={`w-full px-3 sm:px-5 lg:px-6 ${
               phase === "loading"
                 ? "py-8"
-                : "flex min-h-[calc(100dvh-4.75rem)] flex-col justify-center bg-[radial-gradient(900px_420px_at_50%_0%,rgba(37,99,235,0.08),transparent_60%)] py-12 sm:py-16"
+                : "flex min-h-[calc(100dvh-4.75rem)] flex-col justify-start bg-[radial-gradient(900px_420px_at_50%_0%,rgba(37,99,235,0.08),transparent_60%)] pt-4 pb-8 sm:pt-6 sm:pb-10"
             }`}
           >
             {phase === "loading" ? (
@@ -619,22 +619,22 @@ function HomeStage({
           </span>
           Free on-page &amp; technical SEO audit · No sign-up to try
         </p>
-        <h1 className="mt-7 max-w-4xl text-4xl font-bold leading-[1.15] tracking-tight text-ink sm:text-5xl lg:text-[3.25rem]">
+        <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-[1.15] tracking-tight text-ink sm:text-5xl lg:text-[3.25rem]">
           SEO Audit Software Built for Agencies
           <br />
           and SEO Professionals
         </h1>
-        <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-[#64748b] sm:text-lg sm:leading-8">
+        <p className="mt-4 max-w-2xl text-base font-medium leading-7 text-[#64748b] sm:text-lg sm:leading-8">
           Paste a URL. biziol reads the public HTML, scores the live checks, and shows the exact fix next to every failed row. JavaScript SEO compares the raw HTML with the rendered page, and Hreflang opens each language version. The other technical tools stay marked as samples.
         </p>
         <form
-          className="mt-9 w-full max-w-3xl"
+          className="mt-6 w-full max-w-3xl"
           onSubmit={(event) => {
             event.preventDefault();
             onSubmit();
           }}
         >
-          <div className="flex flex-col gap-2 rounded-full bg-white p-2 shadow-[0_18px_40px_-24px_rgba(15,23,42,0.18)] outline-none sm:flex-row sm:items-center sm:gap-0 sm:pl-5 sm:pr-2">
+          <div className="flex flex-col gap-2 rounded-full border border-[#c5ced9] bg-white p-2 shadow-[0_10px_28px_-18px_rgba(15,23,42,0.35)] outline-none sm:flex-row sm:items-center sm:gap-0 sm:pl-5 sm:pr-2">
             <label className="flex min-w-0 flex-1 items-center gap-3 px-3 sm:px-0">
               <FaGlobe className="hidden h-4 w-4 shrink-0 text-[#94a3b8] sm:block" aria-hidden="true" />
               <span className="sr-only">Website URL</span>
@@ -673,7 +673,7 @@ function HomeStage({
             </li>
           ))}
         </ul>
-        <div className="mt-10 w-full max-w-2xl overflow-hidden rounded-full border border-[#93c5fd]/50 bg-[#2563eb]/15 shadow-[0_16px_40px_-28px_rgba(37,99,235,0.45)] backdrop-blur-md">
+        <div className="mt-6 w-full max-w-2xl overflow-hidden rounded-full border border-[#93c5fd]/50 bg-[#2563eb]/15 shadow-[0_16px_40px_-28px_rgba(37,99,235,0.45)] backdrop-blur-md">
           <div className="grid grid-cols-3 divide-x divide-[#93c5fd]/40 text-[#1d4ed8]">
             {[
               { value: "11", label: "Live tools" },
@@ -707,30 +707,33 @@ function ScanStage({ url, finished }: { url: string; finished: string[] }) {
   }
   const active = SCAN_STAGES.find((stage) => !finished.includes(stage.id))?.id;
   return (
-    <section className="overflow-hidden rounded-[28px] bg-white/10 p-3 ring-1 ring-white/25 sm:p-4" aria-live="polite">
-      <div className="rounded-[22px] bg-white/10 p-5 sm:p-8">
-        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/70">
-          <span className="h-2 w-2 rounded-full bg-[#86efac]" />
+    <section className="overflow-hidden rounded-[28px] border border-[#dbe4f0] bg-white p-3 shadow-[0_24px_50px_-32px_rgba(37,99,235,0.35)] sm:p-4" aria-live="polite">
+      <div className="rounded-[22px] bg-[#f8fbff] p-5 sm:p-8">
+        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#2563eb]">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#22c55e] opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
+          </span>
           Live check
         </p>
-        <h2 className="mt-3 text-3xl font-semibold tracking-tight">Checking this page</h2>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-white/80">Reading the public HTML for {host || "this URL"}. A check lights up when that part finishes.</p>
-        <div className="mt-4 rounded-2xl bg-white p-4 text-ink">
+        <h2 className="mt-3 text-3xl font-semibold tracking-tight text-ink">Checking this page</h2>
+        <p className="mt-2 max-w-xl text-sm leading-6 text-[#64748b]">Reading the public HTML for {host || "this URL"}. A check lights up when that part finishes.</p>
+        <div className="mt-4 rounded-2xl border border-[#e6edf5] bg-white p-4 text-ink">
           <p className="truncate text-xs text-muted">{host || url}</p>
-          <div className="mt-3 h-3 w-2/3 rounded bg-[#e8eef6]" />
-          <div className="mt-2 h-3 w-full rounded bg-[#eef3f8]" />
+          <div className="mt-3 h-3 w-2/3 animate-pulse rounded bg-[#e8eef6]" />
+          <div className="mt-2 h-3 w-full animate-pulse rounded bg-[#eef3f8]" />
         </div>
-        <div className="mt-6 h-2 overflow-hidden rounded-full bg-white/20">
-          <div className="h-full rounded-full bg-white transition-[width] duration-500" style={{ width: `${percent}%` }} />
+        <div className="mt-6 h-2 overflow-hidden rounded-full bg-[#e6ebf2]">
+          <div className="h-full rounded-full bg-[#2563eb] transition-[width] duration-500" style={{ width: `${percent}%` }} />
         </div>
-        <p className="mt-2 text-right text-sm font-semibold tabular-nums">{percent}%</p>
+        <p className="mt-2 text-right text-sm font-semibold tabular-nums text-ink">{percent}%</p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${finished.length > 0 ? "bg-white text-[#1d4ed8]" : "bg-white/20 ring-1 ring-white/40"}`}>Fetch</span>
+          <span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${finished.length > 0 ? "bg-[#e8f8ef] text-[#067647]" : "bg-white text-[#64748b] ring-1 ring-[#dbe4f0]"}`}>Fetch</span>
           {SCAN_STAGES.map((stage) => {
             const done = finished.includes(stage.id);
             const current = stage.id === active && finished.length > 0;
             return (
-              <span key={stage.id} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${done ? "bg-white text-[#1d4ed8]" : current ? "bg-white/25 ring-1 ring-white" : "bg-white/10 text-white/75"}`}>
+              <span key={stage.id} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${done ? "bg-[#e8f8ef] text-[#067647]" : current ? "animate-pulse bg-[#eef4ff] text-[#1d4ed8] ring-1 ring-[#93c5fd]" : "bg-white text-[#64748b] ring-1 ring-[#e6edf5]"}`}>
                 {done ? "✓ " : ""}
                 {stage.label}
               </span>
